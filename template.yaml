@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-local-server
+
+  AWS SAM template with locally simulated HTTP API
+
+  Based on the AWS SAM Hello World template
+  
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  EchoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: echoApp/
+      Handler: app.echo
+      Runtime: nodejs12.x
+      Events:
+        HelloWorld:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: get

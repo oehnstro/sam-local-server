@@ -1,0 +1,16 @@
+{
+  "name": "echo_app",
+  "version": "1.0.0",
+  "description": "AWS SAM NodeJS application with a local develpment server",
+  "main": "app.js",
+  "repository": "",
+  "author": "Oskar Ehnström",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {
+    "test": "echo 'No tests' && exit 1"
+  },
+  "devDependencies": {
+    "express": "^4.17.1"
+  }
+}
