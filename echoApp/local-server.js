@@ -18,6 +18,7 @@ server.listen(port, () => {
 const context = {}
 
 function expressHandler(lambdaHandler) {
+    // TODO: log request
     return (req, res) => {
         lambdaHandler(toLambdaEvent(req), context).then(lambdaResponse => {
             for (const [key, value] of Object.entries(lambdaResponse.headers || {})) {
@@ -31,42 +32,33 @@ function expressHandler(lambdaHandler) {
 }
 
 function toLambdaEvent(expressRequest) {
-
     // Example from: https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
+    // Unsupported fields are set to undefined
     return {
         "version": "2.0",
-        "routeKey": "$default",
+        "routeKey": undefined,
         "rawPath": expressRequest.path,
-        "rawQueryString": "parameter1=value1&parameter1=value2&parameter2=value",
-        "cookies": [ // TODO: "All cookie headers in the request are combined with commas and added to the cookies field."
-            "cookie1",
-            "cookie2"
-        ], // https://expressjs.com/en/4x/api.html#req.cookies
-        "headers": {
-            "Header1": "value1",
-            "Header2": "value1,value2"
-        },
-        "queryStringParameters": {
-            "parameter1": "value1,value2",
-            "parameter2": "value"
-        },
+        "rawQueryString": expressRequest.originalUrl, // TODO
+        "cookies": expressRequest.get('Cookie') && expressRequest.get('Cookie').split('; '), // This might need to be an empty array if there are no cookies
+        "headers": expressRequest.headers,
+        "queryStringParameters": expressRequest.query,
         "requestContext": {
-            "accountId": "123456789012",
-            "apiId": "api-id",
-            "authorizer": {},
-            "domainName": "id.execute-api.us-east-1.amazonaws.com",
-            "domainPrefix": "id",
+            "accountId": undefined,
+            "apiId": undefined,
+            "authorizer": undefined,
+            "domainName": undefined,
+            "domainPrefix": undefined,
             "http": {
                 "method": expressRequest.method,
                 "path": expressRequest.path,
                 "protocol": "HTTP/1.1",
-                "sourceIp": "IP",
-                "userAgent": "agent"
+                "sourceIp": expressRequest.ip,
+                "userAgent": expressRequest.get('User-Agent')
             },
-            "requestId": "id",
-            "routeKey": "$default",
-            "stage": "$default",
-            "time": "12/Mar/2020:19:03:58 +0000",
+            "requestId": undefined,
+            "routeKey": undefined,
+            "stage": undefined,
+            "time": undefined,
             "timeEpoch": Date.now()
         },
         "body": expressRequest.body,
