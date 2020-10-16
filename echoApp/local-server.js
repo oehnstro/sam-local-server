@@ -2,6 +2,9 @@ const express = require('express')
 const server = express()
 const port = 5000
 
+// Enables body.json()
+server.use(express.json())
+
 // Require your application file with all your javascript functions exported
 // TODO: Read this from the template.yaml file
 const app = require('./app')
@@ -11,6 +14,15 @@ const app = require('./app')
 server.get('/', expressHandler(app.echo))
 
 
+// Fallback route with reminder to add routes to both places
+server.get('*', (req, res) => {
+    res
+      .status(404)
+      .send(
+        `No route for ${req.method} ${req.path} found, did you add it to local-server.js as well as the template.yaml?`
+      )
+  })
+
 server.listen(port, () => {
     console.log(`Local HTTP API simulated at http://localhost:${port}`)
 })
@@ -18,18 +30,22 @@ server.listen(port, () => {
 const context = {}
 
 function expressHandler(lambdaHandler) {
-    // TODO: log request
     return (req, res) => {
-        lambdaHandler(toLambdaEvent(req), context).then(lambdaResponse => {
-            for (const [key, value] of Object.entries(lambdaResponse.headers || {})) {
-                res.set(key, value)
-            }
-            res.status(lambdaResponse.statusCode).send(lambdaResponse.body)
-        }).catch(err => {
-            console.error(err)
+      lambdaHandler(toLambdaEvent(req), context)
+        .then(lambdaResponse => {
+          res.set(lambdaResponse.headers)
+          res.set(lambdaResponse.multiValueHeaders)
+          
+          // TOOD: Add timeout? and logging for how long the request took?
+          console.log(`${lambdaResponse.statusCode}: ${req.method} ${req.path}`)
+          
+          res.status(lambdaResponse.statusCode).send(lambdaResponse.body)
+        })
+        .catch(err => {
+          console.error(err)
         })
     }
-}
+  }
 
 function toLambdaEvent(expressRequest) {
     // Example from: https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
